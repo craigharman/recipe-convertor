@@ -1,6 +1,6 @@
 # Recipe Converter to Mela Format
 
-A JavaScript application that converts HTML and YML recipe files to the Mela file format (.melarecipe).
+A JavaScript application that converts HTML and YML recipe files from [Cookbook App](https://cookbookmanager.com) to the [Mela](https://mela.recipes) file format (.melarecipe).
 
 ## Features
 
@@ -16,6 +16,7 @@ A JavaScript application that converts HTML and YML recipe files to the Mela fil
   - Categories/tags
   - Nutritional information
   - Source URLs
+- Titles are converted to proper-case
 
 ## Installation
 

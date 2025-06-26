@@ -8,6 +8,12 @@ const { v4: uuidv4 } = require("uuid")
 const https = require("https")
 const http = require("http")
 
+// Helper function to convert a string to proper case (capitalize first letter, rest lower case)
+function toProperCase(str) {
+	if (!str) return ""
+	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}
+
 class RecipeConverter {
 	constructor() {
 		this.recipesDir = "./recipes"
@@ -45,7 +51,7 @@ class RecipeConverter {
 			// Extract recipe data
 			const recipe = {
 				id: this.generateId(filePath),
-				title: this.extractTitle(structuredData, document),
+				title: toProperCase(this.extractTitle(structuredData, document)),
 				text: this.extractDescription(structuredData, document),
 				images: this.extractImages(structuredData, document),
 				categories: this.extractCategories(structuredData, document),
@@ -82,7 +88,7 @@ class RecipeConverter {
 
 			const recipe = {
 				id: this.generateId(filePath),
-				title: data.name || "",
+				title: toProperCase(data.name || ""),
 				text: data.notes || "",
 				images: data.image ? [data.image] : [],
 				categories: this.parseYMLTags(data.tags),
