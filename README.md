@@ -16,7 +16,7 @@ A JavaScript application that converts HTML and YML recipe files from [Cookbook 
   - Categories/tags
   - Nutritional information
   - Source URLs
-- Titles are converted to proper-case
+- Titles are converted to title-case (default) or proper-case
 
 ## Installation
 
@@ -169,19 +169,25 @@ The converter includes comprehensive error handling:
 
 ## Customization
 
-The `RecipeConverter` class can be easily extended or modified:
+You can customize the title casing for recipe titles in the output:
 
-```javascript
+### Title Casing Options
+- **Title Case (default):** Each word in the recipe title is capitalized (e.g., `Apple-Brined Hickory-Smoked Turkey`).
+- **Proper Case:** Only the first letter is capitalized, the rest are lower case (e.g., `Apple-brined hickory-smoked turkey`).
+
+To change the casing mode, pass an option when creating the converter:
+
+```js
 const RecipeConverter = require('./recipe-converter');
 
+// Use title case (default)
 const converter = new RecipeConverter();
-// Customize directories
-converter.recipesDir = './my-recipes';
-converter.outputDir = './my-output';
 
-// Convert specific files
-const recipes = converter.convertAll();
+// Use proper case
+const converterProper = new RecipeConverter({ titleCaseMode: 'proper' });
 ```
+
+If you use the CLI, it will default to title case.
 
 ## Dependencies
 

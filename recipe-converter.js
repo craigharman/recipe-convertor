@@ -8,6 +8,12 @@ const { v4: uuidv4 } = require("uuid")
 const https = require("https")
 const http = require("http")
 
+// Helper function to convert a string to title case (capitalize each word)
+function toTitleCase(str) {
+	if (!str) return ""
+	return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 // Helper function to convert a string to proper case (capitalize first letter, rest lower case)
 function toProperCase(str) {
 	if (!str) return ""
@@ -25,16 +31,23 @@ function formatMinutesToHM(minutes) {
 }
 
 class RecipeConverter {
-	constructor() {
+	constructor(options = {}) {
 		this.recipesDir = "./recipes"
 		this.outputDir = "./output"
 		this.ensureOutputDir()
+		// Title case mode: 'title' (default) or 'proper'
+		this.titleCaseMode = options.titleCaseMode || "title"
 	}
 
 	ensureOutputDir() {
 		if (!fs.existsSync(this.outputDir)) {
 			fs.mkdirSync(this.outputDir, { recursive: true })
 		}
+	}
+
+	getTitle(str) {
+		if (this.titleCaseMode === "proper") return toProperCase(str)
+		return toTitleCase(str)
 	}
 
 	// Parse HTML recipe files
@@ -71,7 +84,7 @@ class RecipeConverter {
 			// Extract recipe data
 			const recipe = {
 				id: this.generateId(filePath),
-				title: toProperCase(this.extractTitle(structuredData, document)),
+				title: this.getTitle(this.extractTitle(structuredData, document)),
 				text: this.extractDescription(structuredData, document),
 				images: this.extractImages(structuredData, document),
 				categories: this.extractCategories(structuredData, document),
@@ -114,7 +127,7 @@ class RecipeConverter {
 
 			const recipe = {
 				id: this.generateId(filePath),
-				title: toProperCase(data.name || ""),
+				title: this.getTitle(data.name || ""),
 				text: data.notes || "",
 				images: data.image ? [data.image] : [],
 				categories: this.parseYMLTags(data.tags),
