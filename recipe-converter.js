@@ -434,7 +434,11 @@ class RecipeConverter {
 				console.log(`  Downloading image: ${url}`)
 				const base64Image = await this.downloadImageAsBase64(url)
 				if (base64Image) {
-					base64Images.push(base64Image)
+					// Remove data URL prefix and escape all slashes as \/
+					const base64Raw = base64Image
+						.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "")
+						.replace(/\//g, "\\/") // Note: Add an additional slash to make replacement easier during file write (see note below)
+					base64Images.push(base64Raw)
 				}
 			}
 		}
@@ -487,7 +491,7 @@ class RecipeConverter {
 
 			if (recipe) {
 				const outputPath = path.join(this.outputDir, `${recipe.id}.melarecipe`)
-				fs.writeFileSync(outputPath, JSON.stringify(recipe, null, 2))
+				fs.writeFileSync(outputPath, json)
 				convertedRecipes.push(recipe)
 				console.log(`✓ Converted: ${outputPath}`)
 			}
@@ -519,7 +523,12 @@ class RecipeConverter {
 				recipe.images = await this.convertImagesToBase64(recipe.images)
 
 				const outputPath = path.join(this.outputDir, `${recipe.id}.melarecipe`)
-				fs.writeFileSync(outputPath, JSON.stringify(recipe, null, 2))
+				// Note: MelaRecipe images have this termination that screws with JSON.stringify so manually fix
+				const escapedRecipe = JSON.stringify(recipe, null, 2).replace(
+					/\\\//g,
+					"/"
+				)
+				fs.writeFileSync(outputPath, escapedRecipe)
 				convertedRecipes.push(recipe)
 				console.log(`✓ Converted: ${outputPath}`)
 			}
