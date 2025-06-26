@@ -14,6 +14,16 @@ function toProperCase(str) {
 	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 }
 
+// Helper function to format minutes as 'Xh Ym' if >= 60, otherwise 'Xm'
+function formatMinutesToHM(minutes) {
+	if (!minutes || isNaN(minutes)) return ""
+	minutes = parseInt(minutes)
+	if (minutes < 60) return `${minutes}m`
+	const h = Math.floor(minutes / 60)
+	const m = minutes % 60
+	return m === 0 ? `${h}h` : `${h}h ${m}m`
+}
+
 class RecipeConverter {
 	constructor() {
 		this.recipesDir = "./recipes"
@@ -48,6 +58,16 @@ class RecipeConverter {
 				}
 			}
 
+			// Extract and format times
+			const prepMins = this.parseTimeToMinutes(
+				this.extractPrepTime(structuredData, document)
+			)
+			const cookMins = this.parseTimeToMinutes(
+				this.extractCookTime(structuredData, document)
+			)
+			const otherMins = 0 // Add logic if you have other_time
+			const totalMins = prepMins + cookMins + otherMins
+
 			// Extract recipe data
 			const recipe = {
 				id: this.generateId(filePath),
@@ -56,9 +76,9 @@ class RecipeConverter {
 				images: this.extractImages(structuredData, document),
 				categories: this.extractCategories(structuredData, document),
 				yield: this.extractYield(structuredData, document),
-				prepTime: this.extractPrepTime(structuredData, document),
-				cookTime: this.extractCookTime(structuredData, document),
-				totalTime: this.extractTotalTime(structuredData, document),
+				prepTime: formatMinutesToHM(prepMins),
+				cookTime: formatMinutesToHM(cookMins),
+				totalTime: formatMinutesToHM(totalMins),
 				ingredients: this.extractIngredients(structuredData, document),
 				instructions: this.extractInstructions(structuredData, document),
 				notes: this.extractNotes(structuredData, document),
@@ -86,6 +106,12 @@ class RecipeConverter {
 			const ymlContent = fs.readFileSync(filePath, "utf-8")
 			const data = yaml.parse(ymlContent)
 
+			// Extract and format times
+			const prepMins = this.parseTimeToMinutes(data.prep_time)
+			const cookMins = this.parseTimeToMinutes(data.cook_time)
+			const otherMins = this.parseTimeToMinutes(data.other_time)
+			const totalMins = prepMins + cookMins + otherMins
+
 			const recipe = {
 				id: this.generateId(filePath),
 				title: toProperCase(data.name || ""),
@@ -93,9 +119,10 @@ class RecipeConverter {
 				images: data.image ? [data.image] : [],
 				categories: this.parseYMLTags(data.tags),
 				yield: data.servings || "",
-				prepTime: data.prep_time || "",
-				cookTime: data.cook_time || "",
-				totalTime: this.calculateTotalTime(data.prep_time, data.cook_time),
+				prepTime: formatMinutesToHM(prepMins),
+				cookTime: formatMinutesToHM(cookMins),
+				otherTime: formatMinutesToHM(otherMins),
+				totalTime: formatMinutesToHM(totalMins),
 				ingredients: this.formatYMLIngredients(data.ingredients),
 				instructions: this.formatYMLDirections(data.directions),
 				notes: data.notes || "",
@@ -317,14 +344,12 @@ class RecipeConverter {
 		return ""
 	}
 
-	calculateTotalTime(prepTime, cookTime) {
-		// Simple calculation - in a real app you might want more sophisticated parsing
+	calculateTotalTime(prepTime, cookTime, otherTime) {
 		const prep = this.parseTimeToMinutes(prepTime)
 		const cook = this.parseTimeToMinutes(cookTime)
-		if (prep && cook) {
-			return `${prep + cook} minutes`
-		}
-		return ""
+		const other = this.parseTimeToMinutes(otherTime)
+		const total = prep + cook + other
+		return formatMinutesToHM(total)
 	}
 
 	parseTimeToMinutes(timeStr) {
