@@ -626,7 +626,13 @@ class RecipeConverter {
 		archive.pipe(output)
 
 		recipes.forEach((recipe) => {
-			archive.append(JSON.stringify(recipe, null, 2), {
+			// Note: MelaRecipe images have this termination that screws with JSON.stringify so manually fix
+			// Unescape slashes in base64 image strings for compatibility with the Mela app
+			const escapedRecipe = JSON.stringify(recipe, null, 2).replace(
+				/\\\//g,
+				"/"
+			)
+			archive.append(escapedRecipe, {
 				name: `${recipe.id}.melarecipe`,
 			})
 		})
